@@ -164,7 +164,7 @@ func packSerial(license License) ([]byte, error) {
 	// 4. hardware_id
 	hardwareIdLen := len(license.HardwareId)
 	if hardwareIdLen > 0 {
-		if hardwareIdLen % 4 != 0 {
+		if hardwareIdLen%4 != 0 {
 			return nil, errors.New("Invalid HWID (not multiple of 4): " + strconv.Itoa(hardwareIdLen))
 		}
 
@@ -174,9 +174,9 @@ func packSerial(license License) ([]byte, error) {
 	}
 	// 5. date of expiration
 	if !license.Expiration.IsZero() {
-		year := license.Expiration.Year()
-		month := license.Expiration.Month()
-		day := license.Expiration.Day()
+		year := int(license.Expiration.Year())
+		month := int(license.Expiration.Month())
+		day := int(license.Expiration.Day())
 		ln.WriteByte(5)
 		ln.WriteByte(byte(day))
 		ln.WriteByte(byte(month))
@@ -221,9 +221,9 @@ func packSerial(license License) ([]byte, error) {
 	}
 	// 9. max build date
 	if !license.MaxBuild.IsZero() {
-		year := license.MaxBuild.Year()
-		month := license.MaxBuild.Month()
-		day := license.MaxBuild.Day()
+		year := int(license.MaxBuild.Year())
+		month := int(license.MaxBuild.Month())
+		day := int(license.MaxBuild.Day())
 		ln.WriteByte(9)
 		ln.WriteByte(byte(day))
 		ln.WriteByte(byte(month))
@@ -393,7 +393,7 @@ func ParseLicense(serial, public, modulus, productCode string, bits int) (*Licen
 	return license, err
 }
 
-var SupportBits = []interface{} {128, 256, 512, 1024, 2048, 4096}
+var SupportBits = []interface{}{128, 256, 512, 1024, 2048, 4096}
 
 func NewConfig(algorithm string, bits int, private string, modules string, productCode string) (keygen *Config, err error) {
 	if len(algorithm) == 0 || !(isIn(bits, SupportBits)) ||
@@ -401,7 +401,7 @@ func NewConfig(algorithm string, bits int, private string, modules string, produ
 		return nil, errors.New("配置有误")
 	}
 
-	return &Config{Algorithm:algorithm, Bits:bits, Private:private, Modules:modules, ProductCode:productCode}, nil
+	return &Config{Algorithm: algorithm, Bits: bits, Private: private, Modules: modules, ProductCode: productCode}, nil
 }
 
 func (l License) Generate(config Config) (string, error) {
@@ -426,14 +426,14 @@ func (l License) Generate(config Config) (string, error) {
 	size := rand.Intn(8) + 8
 
 	for i := 0; i < size; i++ {
-		paddingFront = append(paddingFront, byte(rand.Intn(254) + 1))
+		paddingFront = append(paddingFront, byte(rand.Intn(254)+1))
 	}
 
 	paddingFront = append(paddingFront, 0)
 	contentSize := len(serial) + len(paddingFront)
-	rest := config.Bits/ 8 - contentSize
+	rest := config.Bits/8 - contentSize
 	if rest < 0 {
-		return "", errors.New("content is too bug to fit in key: " + strconv.Itoa(contentSize) + ", maximal allowed is " + strconv.Itoa(config.Bits/ 8))
+		return "", errors.New("content is too bug to fit in key: " + strconv.Itoa(contentSize) + ", maximal allowed is " + strconv.Itoa(config.Bits/8))
 	}
 
 	paddingBack := []byte{}
@@ -483,4 +483,3 @@ func isIn(search interface{}, in []interface{}) bool {
 
 	return false
 }
-
